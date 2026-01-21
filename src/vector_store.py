@@ -2,11 +2,13 @@
 Vector Store module - handles chunking, embeddings, and similarity search.
 """
 
+import shutil
+import os
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
-from .conf import OPENAI_API_KEY, CHUNK_SIZE, CHUNK_OVERLAP
-from .logger import logger
+from src.conf import OPENAI_API_KEY, CHUNK_SIZE, CHUNK_OVERLAP
+from src.logger import logger
 
 
 class VectorStore:
@@ -28,8 +30,19 @@ class VectorStore:
         
         logger.info(f"VectorStore initialized (chunk_size={CHUNK_SIZE}, overlap={CHUNK_OVERLAP})")
     
-    def build_from_documents(self, pages: list) -> int:
+    def _clear_existing(self):
+        """Remove existing vector store to start fresh."""
+        if os.path.exists(self.persist_directory):
+            shutil.rmtree(self.persist_directory)
+            logger.info(f"Cleared existing vector store at {self.persist_directory}")
+    
+    def build_from_documents(self, pages: list, clear_existing: bool = True) -> int:
         """Chunk documents, create embeddings, and store in ChromaDB."""
+        
+        # Clear old data to avoid duplicates
+        if clear_existing:
+            self._clear_existing()
+        
         # Split pages into chunks
         self.chunks = self.splitter.split_documents(pages)
         logger.info(f"Created {len(self.chunks)} chunks from {len(pages)} pages")

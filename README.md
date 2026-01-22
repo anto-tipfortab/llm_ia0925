@@ -11,6 +11,9 @@ Chatbot conversacional que responde preguntas sobre Tenerife utilizando:
 - **RAG (Retrieval-Augmented Generation)**: Respuestas basadas en una guía turística local
 - **Diálogo Multiturno**: Mantiene el contexto de la conversación
 - **Function Calling**: Integración con función de predicción meteorológica
+- **Interfaz Web**: Aplicación Streamlit interactiva
+
+![Streamlit App](assets/app_screenshot.png)
 
 ---
 
@@ -19,10 +22,13 @@ Chatbot conversacional que responde preguntas sobre Tenerife utilizando:
 ```
 LLM_IA0925/
 ├── .env                    # Variables de entorno (API Key)
+├── app.py                  # Aplicación Streamlit
 ├── notebook.ipynb          # Notebook principal
 ├── assistant.log           # Archivo de logs (se genera automáticamente)
 ├── README.md
 ├── requirements.txt        # Dependencias
+├── assets/                 # Imágenes y recursos
+│   └── app_screenshot.png
 ├── src/                    # Módulos Python
 │   ├── __init__.py
 │   ├── conf.py             # Configuración y parámetros del modelo
@@ -81,6 +87,20 @@ Copiar `TENERIFE.pdf` a la carpeta `data/`.
 ---
 
 ## Uso
+
+### Aplicación Streamlit (Recomendado)
+
+```bash
+streamlit run app.py
+```
+
+Se abrirá en el navegador en `http://localhost:8501`
+
+**Características:**
+- Interfaz de chat interactiva
+- Sidebar con configuración del modelo y estadísticas
+- Indicador de uso de función de clima
+- Botón para limpiar conversación
 
 ### Ejecutar el notebook
 
@@ -178,6 +198,7 @@ Características:
 - `simulated=False`: Preparado para API real (requiere `api_key`)
 - Validación con Pydantic (`WeatherRequest`, `WeatherResponse`)
 - Manejo de errores: formato de fecha inválido, fecha muy lejana, fechas pasadas
+- Soporte para fechas en lenguaje natural ("mañana", "hoy", "fin de semana")
 
 ### `src/system_prompt.txt`
 Prompt del sistema usando metodología ROCA:
@@ -185,6 +206,13 @@ Prompt del sistema usando metodología ROCA:
 - **O**bjective: Objetivo principal
 - **C**onstraints: Restricciones y límites
 - **A**ction: Cómo debe responder
+
+### `app.py`
+Aplicación Streamlit:
+- Interfaz de chat interactiva
+- Sidebar con configuración y estadísticas
+- Cache de RAG chain para mejor rendimiento
+- Gestión de historial de conversación
 
 ---
 

@@ -53,7 +53,7 @@ WEATHER_TOOL_SCHEMA = {
             "properties": {
                 "date": {
                     "type": "string",
-                    "description": "Fecha para el pronóstico en formato YYYY-MM-DD"
+                    "description": "Fecha para el pronóstico. Acepta: 'hoy', 'mañana', 'pasado mañana', 'fin de semana', o formato YYYY-MM-DD"
                 },
                 "location": {
                     "type": "string",
@@ -227,6 +227,9 @@ class WeatherService:
             date = arguments.get("date")
             location = arguments.get("location", "Tenerife")
             
+            # Handle natural language dates
+            date = self._normalize_date(date)
+            
             return self.get_weather(date=date, location=location)
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse tool call arguments: {e}")
@@ -234,3 +237,37 @@ class WeatherService:
                 "error": True,
                 "message": "Error al procesar la solicitud del tiempo."
             }
+    
+    def _normalize_date(self, date_str: str) -> str:
+        """Convert natural language dates to YYYY-MM-DD format."""
+        if not date_str:
+            # Default to tomorrow
+            return (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        date_lower = date_str.lower().strip()
+        today = datetime.now()
+        
+        # Handle Spanish natural language dates
+        if date_lower in ["hoy", "today"]:
+            return today.strftime("%Y-%m-%d")
+        elif date_lower in ["mañana", "manana", "tomorrow"]:
+            return (today + timedelta(days=1)).strftime("%Y-%m-%d")
+        elif date_lower in ["pasado mañana", "pasado manana", "day after tomorrow"]:
+            return (today + timedelta(days=2)).strftime("%Y-%m-%d")
+        elif "fin de semana" in date_lower or "weekend" in date_lower:
+            # Next Saturday
+            days_until_saturday = (5 - today.weekday()) % 7
+            if days_until_saturday == 0:
+                days_until_saturday = 7
+            return (today + timedelta(days=days_until_saturday)).strftime("%Y-%m-%d")
+        
+        # Check if it's already in YYYY-MM-DD format
+        try:
+            datetime.strptime(date_str, "%Y-%m-%d")
+            return date_str
+        except ValueError:
+            pass
+        
+        # Default to tomorrow if we can't parse
+        logger.warning(f"Could not parse date '{date_str}', defaulting to tomorrow")
+        return (today + timedelta(days=1)).strftime("%Y-%m-%d")

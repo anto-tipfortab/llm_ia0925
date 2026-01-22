@@ -53,9 +53,11 @@ class RAGChain:
         """Execute a tool call and return the result."""
         function_name = tool_call.function.name
         logger.info(f"Tool call requested: {function_name}")
+        logger.info(f"Tool call arguments: {tool_call.function.arguments}")
         
         if function_name == "get_weather" and self.weather_service:
             result = self.weather_service.parse_tool_call(tool_call)
+            logger.info(f"Tool result: {result}")
             return json.dumps(result, ensure_ascii=False)
         
         logger.warning(f"Unknown function: {function_name}")
